@@ -63,6 +63,27 @@ map.on("mousedown", () => {
 map.on("lasso.finished", (event) => {
   setSelectedLayers(event.layers);
   console.log("lasso finished event", event);
+
+  // send lasso coordinates to server
+  const lassoCoordinates = event.latLngs;
+
+  console.log("payload", JSON.stringify(lassoCoordinates));
+
+  fetch("/api/v1/lasso", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(lassoCoordinates),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Success:", data);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 });
 map.on("lasso.enabled", () => {
   lassoEnabled.innerHTML = "Enabled";
