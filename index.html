@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>leaflet-lasso</title>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet-lasso@2.2.12/dist/leaflet-lasso.umd.js"></script>
+    <!-- <script src="../dist/leaflet-lasso.umd.js"></script> -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+    <style>
+      #map {
+        width: 640px;
+        height: 320px;
+        float: left;
+      }
+      #sidebar {
+        margin-left: 650px;
+      }
+      .selected {
+        filter: hue-rotate(135deg);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>leaflet-lasso</h1>
+      <p>Lasso selection plugin for Leaflet</p>
+      <hr />
+
+      <div id="map"></div>
+      <div id="sidebar">
+        <div>
+          <button id="toggleLasso" type="button" class="btn btn-primary btn-sm">
+            Toggle Lasso
+          </button>
+          <br /><br />
+          <label
+            ><input
+              type="radio"
+              name="containOrIntersect"
+              id="contain"
+              checked
+            />
+            Contain</label
+          >
+          <label class="ml-2"
+            ><input type="radio" name="containOrIntersect" id="intersect" />
+            Intersect</label
+          >
+        </div>
+        <br />
+        <div id="lassoEnabled">Disabled</div>
+        <br />
+        <div id="lassoResult"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      const mapElement = document.querySelector("#map");
+      const toggleLasso = document.querySelector("#toggleLasso");
+      const contain = document.querySelector("#contain");
+      const intersect = document.querySelector("#intersect");
+      const lassoEnabled = document.querySelector("#lassoEnabled");
+      const lassoResult = document.querySelector("#lassoResult");
+
+      const map = L.map(mapElement, { center: [0, 0], zoom: 0 });
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+      const lassoControl = L.control.lasso().addTo(map);
+
+      // the same layers as in unit test
+      const startLatLng = [51.5, -0.11];
+      const latDelta = 0.01;
+      const lngDelta = latDelta * 1.75;
+      const latSmallDelta = 0.002;
+      const lngSmallDelta = latSmallDelta * 1.75;
+      const markers = new Array(9)
+        .fill(undefined)
+        .map((_, i) =>
+          L.marker([
+            startLatLng[0] + Math.floor(i / 3) * latDelta,
+            startLatLng[1] + (i % 3) * lngDelta,
+          ])
+        );
+      const circleMarker = L.circleMarker(
+        [startLatLng[0] + latDelta * 2, startLatLng[1] + lngDelta * 3],
+        { radius: 21 }
+      );
+      const circle = L.circle(
+        [startLatLng[0] + latDelta * 2, startLatLng[1] + lngDelta * 4],
+        { radius: 250 }
+      );
+      const polyline = ((latLng) =>
+        L.polyline([
+          [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
+          [latLng[0] + latSmallDelta, latLng[1] - lngSmallDelta],
+          [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
+          [latLng[0] - latSmallDelta, latLng[1] + lngSmallDelta],
+        ]))([startLatLng[0] + latDelta * 1, startLatLng[1] + lngDelta * 3]);
+      const multiPolyline = ((latLng) =>
+        L.polyline([
+          [
+            [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
+            [latLng[0] + latSmallDelta, latLng[1] - lngSmallDelta],
+            [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
+            [latLng[0] - latSmallDelta, latLng[1] + lngSmallDelta],
+          ],
+          [
+            [latLng[0] - latSmallDelta / 2, latLng[1] - lngSmallDelta / 2],
+            [latLng[0] + latSmallDelta / 2, latLng[1] - lngSmallDelta / 2],
+            [latLng[0] + latSmallDelta / 2, latLng[1] + lngSmallDelta / 2],
+            [latLng[0] - latSmallDelta / 2, latLng[1] + lngSmallDelta / 2],
+          ],
+        ]))([startLatLng[0] + latDelta * 1, startLatLng[1] + lngDelta * 4]);
+      const rectangle = ((latLng) =>
+        L.rectangle([
+          [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
+          [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
+        ]))([startLatLng[0], startLatLng[1] + lngDelta * 3]);
+      const polygon = ((latLng) =>
+        L.polygon([
+          [
+            [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
+            [latLng[0] + latSmallDelta, latLng[1] - lngSmallDelta],
+            [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
+            [latLng[0] - latSmallDelta, latLng[1] + lngSmallDelta],
+          ],
+        ]))([startLatLng[0], startLatLng[1] + lngDelta * 4]);
+      const holedPolygon = ((latLng) =>
+        L.polygon([
+          [
+            [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
+            [latLng[0] - latSmallDelta, latLng[1] + lngSmallDelta],
+            [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
+            [latLng[0] + latSmallDelta, latLng[1] - lngSmallDelta],
+          ],
+          [
+            [latLng[0] - latSmallDelta / 2, latLng[1] - lngSmallDelta / 2],
+            [latLng[0] - latSmallDelta / 2, latLng[1] + lngSmallDelta / 2],
+            [latLng[0] + latSmallDelta / 2, latLng[1] + lngSmallDelta / 2],
+            [latLng[0] + latSmallDelta / 2, latLng[1] - lngSmallDelta / 2],
+          ],
+        ]))([startLatLng[0], startLatLng[1] + lngDelta * 5]);
+      const multiPolygon = ((latLng) =>
+        L.polygon([
+          [
+            [
+              [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
+              [latLng[0] - latSmallDelta, latLng[1]],
+              [latLng[0], latLng[1]],
+              [latLng[0], latLng[1] - lngSmallDelta],
+            ],
+          ],
+          [
+            [
+              [latLng[0], latLng[1]],
+              [latLng[0], latLng[1] + lngSmallDelta],
+              [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
+              [latLng[0] + latSmallDelta, latLng[1]],
+            ],
+          ],
+        ]))([startLatLng[0], startLatLng[1] + lngDelta * 6]);
+      const holedMultiPolygon = ((latLng) =>
+        L.polygon([
+          [
+            [
+              [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
+              [latLng[0] - latSmallDelta, latLng[1]],
+              [latLng[0], latLng[1]],
+              [latLng[0], latLng[1] - lngSmallDelta],
+            ],
+            [
+              [
+                latLng[0] - (latSmallDelta / 4) * 3,
+                latLng[1] - (lngSmallDelta / 4) * 3,
+              ],
+              [
+                latLng[0] - (latSmallDelta / 4) * 3,
+                latLng[1] - lngSmallDelta / 4,
+              ],
+              [latLng[0] - latSmallDelta / 4, latLng[1] - lngSmallDelta / 4],
+              [
+                latLng[0] - latSmallDelta / 4,
+                latLng[1] - (lngSmallDelta / 4) * 3,
+              ],
+            ],
+          ],
+          [
+            [
+              [latLng[0], latLng[1]],
+              [latLng[0], latLng[1] + lngSmallDelta],
+              [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
+              [latLng[0] + latSmallDelta, latLng[1]],
+            ],
+            [
+              [
+                latLng[0] + (latSmallDelta / 4) * 3,
+                latLng[1] + (lngSmallDelta / 4) * 3,
+              ],
+              [
+                latLng[0] + (latSmallDelta / 4) * 3,
+                latLng[1] + lngSmallDelta / 4,
+              ],
+              [latLng[0] + latSmallDelta / 4, latLng[1] + lngSmallDelta / 4],
+              [
+                latLng[0] + latSmallDelta / 4,
+                latLng[1] + (lngSmallDelta / 4) * 3,
+              ],
+            ],
+          ],
+        ]))([startLatLng[0], startLatLng[1] + lngDelta * 7]);
+      const markerClusterGroup = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        maxClusterRadius: 40,
+      });
+      markerClusterGroup.addLayers(markers);
+      const layers = [
+        markerClusterGroup,
+        circleMarker,
+        circle,
+        polyline,
+        multiPolyline,
+        rectangle,
+        polygon,
+        holedPolygon,
+        multiPolygon,
+        holedMultiPolygon,
+      ];
+
+      const featureGroup = L.featureGroup(layers).addTo(map);
+      map.fitBounds(featureGroup.getBounds(), { animate: false });
+
+      function resetSelectedState() {
+        map.eachLayer((layer) => {
+          if (
+            layer instanceof L.Marker &&
+            !(layer instanceof L.MarkerCluster)
+          ) {
+            layer.setIcon(new L.Icon.Default());
+          } else if (layer instanceof L.Path) {
+            layer.setStyle({ color: "#3388ff" });
+          }
+        });
+
+        lassoResult.innerHTML = "";
+      }
+      function setSelectedLayers(layers) {
+        resetSelectedState();
+
+        layers.forEach((layer) => {
+          if (
+            layer instanceof L.Marker &&
+            !(layer instanceof L.MarkerCluster)
+          ) {
+            layer.setIcon(new L.Icon.Default({ className: "selected " }));
+          } else if (layer instanceof L.Path) {
+            layer.setStyle({ color: "#ff4620" });
+          }
+        });
+
+        lassoResult.innerHTML = layers.length
+          ? `Selected ${layers.length} layers`
+          : "";
+      }
+
+      map.on("mousedown", () => {
+        resetSelectedState();
+      });
+      map.on("lasso.finished", (event) => {
+        setSelectedLayers(event.layers);
+      });
+      map.on("lasso.enabled", () => {
+        lassoEnabled.innerHTML = "Enabled";
+        resetSelectedState();
+      });
+      map.on("lasso.disabled", () => {
+        lassoEnabled.innerHTML = "Disabled";
+      });
+
+      toggleLasso.addEventListener("click", () => {
+        if (lassoControl.enabled()) {
+          lassoControl.disable();
+        } else {
+          lassoControl.enable();
+        }
+      });
+      contain.addEventListener("change", () => {
+        lassoControl.setOptions({ intersect: intersect.checked });
+      });
+      intersect.addEventListener("change", () => {
+        lassoControl.setOptions({ intersect: intersect.checked });
+      });
+    </script>
+
+    <a
+      href="https://github.com/zakjan/leaflet-lasso"
+      class="github-corner"
+      aria-label="View source on GitHub"
+      ><svg
+        width="80"
+        height="80"
+        viewBox="0 0 250 250"
+        style="
+          fill: #151513;
+          color: #fff;
+          position: absolute;
+          top: 0;
+          border: 0;
+          right: 0;
+        "
+        aria-hidden="true"
+      >
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path
+          d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+          fill="currentColor"
+          style="transform-origin: 130px 106px"
+          class="octo-arm"
+        ></path>
+        <path
+          d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+          fill="currentColor"
+          class="octo-body"
+        ></path></svg></a
+    ><style>
+      .github-corner:hover .octo-arm {
+        animation: octocat-wave 560ms ease-in-out;
+      }
+      @keyframes octocat-wave {
+        0%,
+        100% {
+          transform: rotate(0);
+        }
+        20%,
+        60% {
+          transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+          transform: rotate(10deg);
+        }
+      }
+      @media (max-width: 500px) {
+        .github-corner:hover .octo-arm {
+          animation: none;
+        }
+        .github-corner .octo-arm {
+          animation: octocat-wave 560ms ease-in-out;
+        }
+      }
+    </style>
+  </body>
+</html>
