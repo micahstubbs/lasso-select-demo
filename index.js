@@ -18,14 +18,6 @@ const latDelta = 0.01;
 const lngDelta = latDelta * 1.75;
 const latSmallDelta = 0.002;
 const lngSmallDelta = latSmallDelta * 1.75;
-const markers = new Array(9)
-  .fill(undefined)
-  .map((_, i) =>
-    L.marker([
-      startLatLng[0] + Math.floor(i / 3) * latDelta,
-      startLatLng[1] + (i % 3) * lngDelta,
-    ])
-  );
 
 //  a Circle has always the same meter size / radius.
 const circle = L.circle(
@@ -33,11 +25,6 @@ const circle = L.circle(
   { radius: 250 }
 );
 
-const markerClusterGroup = L.markerClusterGroup({
-  showCoverageOnHover: false,
-  maxClusterRadius: 40,
-});
-markerClusterGroup.addLayers(markers);
 const layers = [circle];
 
 const featureGroup = L.featureGroup(layers).addTo(map);
