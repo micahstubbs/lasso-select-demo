@@ -26,138 +26,19 @@ const markers = new Array(9)
       startLatLng[1] + (i % 3) * lngDelta,
     ])
   );
-const circleMarker = L.circleMarker(
-  [startLatLng[0] + latDelta * 2, startLatLng[1] + lngDelta * 3],
-  { radius: 21 }
-);
+
+//  a Circle has always the same meter size / radius.
 const circle = L.circle(
   [startLatLng[0] + latDelta * 2, startLatLng[1] + lngDelta * 4],
   { radius: 250 }
 );
-const polyline = ((latLng) =>
-  L.polyline([
-    [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
-    [latLng[0] + latSmallDelta, latLng[1] - lngSmallDelta],
-    [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
-    [latLng[0] - latSmallDelta, latLng[1] + lngSmallDelta],
-  ]))([startLatLng[0] + latDelta * 1, startLatLng[1] + lngDelta * 3]);
-const multiPolyline = ((latLng) =>
-  L.polyline([
-    [
-      [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
-      [latLng[0] + latSmallDelta, latLng[1] - lngSmallDelta],
-      [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
-      [latLng[0] - latSmallDelta, latLng[1] + lngSmallDelta],
-    ],
-    [
-      [latLng[0] - latSmallDelta / 2, latLng[1] - lngSmallDelta / 2],
-      [latLng[0] + latSmallDelta / 2, latLng[1] - lngSmallDelta / 2],
-      [latLng[0] + latSmallDelta / 2, latLng[1] + lngSmallDelta / 2],
-      [latLng[0] - latSmallDelta / 2, latLng[1] + lngSmallDelta / 2],
-    ],
-  ]))([startLatLng[0] + latDelta * 1, startLatLng[1] + lngDelta * 4]);
-const rectangle = ((latLng) =>
-  L.rectangle([
-    [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
-    [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
-  ]))([startLatLng[0], startLatLng[1] + lngDelta * 3]);
-const polygon = ((latLng) =>
-  L.polygon([
-    [
-      [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
-      [latLng[0] + latSmallDelta, latLng[1] - lngSmallDelta],
-      [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
-      [latLng[0] - latSmallDelta, latLng[1] + lngSmallDelta],
-    ],
-  ]))([startLatLng[0], startLatLng[1] + lngDelta * 4]);
-const holedPolygon = ((latLng) =>
-  L.polygon([
-    [
-      [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
-      [latLng[0] - latSmallDelta, latLng[1] + lngSmallDelta],
-      [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
-      [latLng[0] + latSmallDelta, latLng[1] - lngSmallDelta],
-    ],
-    [
-      [latLng[0] - latSmallDelta / 2, latLng[1] - lngSmallDelta / 2],
-      [latLng[0] - latSmallDelta / 2, latLng[1] + lngSmallDelta / 2],
-      [latLng[0] + latSmallDelta / 2, latLng[1] + lngSmallDelta / 2],
-      [latLng[0] + latSmallDelta / 2, latLng[1] - lngSmallDelta / 2],
-    ],
-  ]))([startLatLng[0], startLatLng[1] + lngDelta * 5]);
-const multiPolygon = ((latLng) =>
-  L.polygon([
-    [
-      [
-        [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
-        [latLng[0] - latSmallDelta, latLng[1]],
-        [latLng[0], latLng[1]],
-        [latLng[0], latLng[1] - lngSmallDelta],
-      ],
-    ],
-    [
-      [
-        [latLng[0], latLng[1]],
-        [latLng[0], latLng[1] + lngSmallDelta],
-        [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
-        [latLng[0] + latSmallDelta, latLng[1]],
-      ],
-    ],
-  ]))([startLatLng[0], startLatLng[1] + lngDelta * 6]);
-const holedMultiPolygon = ((latLng) =>
-  L.polygon([
-    [
-      [
-        [latLng[0] - latSmallDelta, latLng[1] - lngSmallDelta],
-        [latLng[0] - latSmallDelta, latLng[1]],
-        [latLng[0], latLng[1]],
-        [latLng[0], latLng[1] - lngSmallDelta],
-      ],
-      [
-        [
-          latLng[0] - (latSmallDelta / 4) * 3,
-          latLng[1] - (lngSmallDelta / 4) * 3,
-        ],
-        [latLng[0] - (latSmallDelta / 4) * 3, latLng[1] - lngSmallDelta / 4],
-        [latLng[0] - latSmallDelta / 4, latLng[1] - lngSmallDelta / 4],
-        [latLng[0] - latSmallDelta / 4, latLng[1] - (lngSmallDelta / 4) * 3],
-      ],
-    ],
-    [
-      [
-        [latLng[0], latLng[1]],
-        [latLng[0], latLng[1] + lngSmallDelta],
-        [latLng[0] + latSmallDelta, latLng[1] + lngSmallDelta],
-        [latLng[0] + latSmallDelta, latLng[1]],
-      ],
-      [
-        [
-          latLng[0] + (latSmallDelta / 4) * 3,
-          latLng[1] + (lngSmallDelta / 4) * 3,
-        ],
-        [latLng[0] + (latSmallDelta / 4) * 3, latLng[1] + lngSmallDelta / 4],
-        [latLng[0] + latSmallDelta / 4, latLng[1] + lngSmallDelta / 4],
-        [latLng[0] + latSmallDelta / 4, latLng[1] + (lngSmallDelta / 4) * 3],
-      ],
-    ],
-  ]))([startLatLng[0], startLatLng[1] + lngDelta * 7]);
+
 const markerClusterGroup = L.markerClusterGroup({
   showCoverageOnHover: false,
   maxClusterRadius: 40,
 });
 markerClusterGroup.addLayers(markers);
-const layers = [
-  markerClusterGroup,
-  circleMarker,
-  circle,
-  polyline,
-  multiPolyline,
-  rectangle,
-  polygon,
-  holedPolygon,
-  multiPolygon,
-  holedMultiPolygon,
-];
+const layers = [circle];
 
 const featureGroup = L.featureGroup(layers).addTo(map);
 map.fitBounds(featureGroup.getBounds(), { animate: false });
