@@ -67,7 +67,10 @@ map.on("lasso.finished", (event) => {
   console.log("lasso finished event", event);
 
   // send lasso coordinates to server
-  const lassoCoordinates = event.latLngs;
+  const lassoCoordinates = event.latLngs.map((latLng) => [
+    latLng.lng,
+    latLng.lat,
+  ]);
 
   console.log("payload", JSON.stringify(lassoCoordinates));
 
