@@ -85,6 +85,26 @@ map.on("lasso.finished", (event) => {
     .then((response) => response.json())
     .then((data) => {
       console.log("Success:", data);
+
+      const sidebar = d3.select("#sidebar");
+
+      // clear previous results
+      sidebar.selectAll("#lasso-result-header").remove();
+      sidebar.selectAll("#lasso-result").remove();
+
+      // add new results
+      const div = sidebar.append("div").attr("id", "lasso-result");
+      div
+        .append("h3")
+        .attr("id", "lasso-result-header")
+        .text("Zip Codes in Lasso");
+      div.append("p").text(
+        data.body
+          .map((feature) => {
+            return feature.properties.NAME20;
+          })
+          .join(", ")
+      );
     })
     .catch((error) => {
       console.error("Error:", error);
