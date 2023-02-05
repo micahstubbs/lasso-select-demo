@@ -1,5 +1,6 @@
 // read in index.html
 import fs from "fs";
+import { exec } from "child_process";
 
 const html = fs.readFileSync("index.html", "utf8");
 
@@ -13,6 +14,7 @@ const srcs = scripts.map((script) => script.match(/src="(.*?)"/)[1]);
 const remoteDeps = srcs.filter((src) => src.startsWith("http"));
 
 // log out the remote dependencies
+console.log("Remote dependencies:");
 console.log(remoteDeps);
 
 // use curl to download all of the remote dependencies
@@ -22,11 +24,14 @@ remoteDeps.forEach((dep) => {
 });
 
 // in the html, replace the remote dependencies with the local ones
+// write the url of the old remote dependency as an html comment
+// above the new local dependency
 const newHtml = html.replace(
   /<script.*?src="(.*?)".*?<\/script>/g,
   (match, src) => {
     if (src.startsWith("http")) {
-      return `<script src="${src.split("/").pop()}"></script>`;
+      return `<!-- ${src} -->\r
+      <script src="${src.split("/").pop()}"></script>`;
     }
     return match;
   }
@@ -34,3 +39,5 @@ const newHtml = html.replace(
 
 // write the new html to index.html
 fs.writeFileSync("index.html", newHtml);
+
+console.log(`Wrote ${remoteDeps.length} remote dependencies to index.html`);
