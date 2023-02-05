@@ -5,30 +5,32 @@ const intersect = document.querySelector("#intersect");
 const lassoEnabled = document.querySelector("#lassoEnabled");
 const lassoResult = document.querySelector("#lassoResult");
 
-const map = L.map(mapElement, { center: [0, 0], zoom: 0 });
+// center the map on the center of the United States
+const startLatLng = [39.8283, -98.5795];
+const latDelta = 0.01;
+const lngDelta = latDelta * 1.75;
+const latSmallDelta = 0.002;
+const lngSmallDelta = latSmallDelta * 1.75;
+
+const initialZoom = 4;
+const map = L.map(mapElement, { center: startLatLng, zoom: initialZoom });
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 }).addTo(map);
 const lassoControl = L.control.lasso().addTo(map);
 
-// the same layers as in unit test
-const startLatLng = [51.5, -0.11];
-const latDelta = 0.01;
-const lngDelta = latDelta * 1.75;
-const latSmallDelta = 0.002;
-const lngSmallDelta = latSmallDelta * 1.75;
-
 //  a Circle has always the same meter size / radius.
 const circle = L.circle(
   [startLatLng[0] + latDelta * 2, startLatLng[1] + lngDelta * 4],
-  { radius: 250 }
+  // 5000 meters, 5km
+  { radius: 5000 }
 );
 
 const layers = [circle];
 
 const featureGroup = L.featureGroup(layers).addTo(map);
-map.fitBounds(featureGroup.getBounds(), { animate: false });
+// map.fitBounds(featureGroup.getBounds(), { animate: false });
 
 function resetSelectedState() {
   map.eachLayer((layer) => {
