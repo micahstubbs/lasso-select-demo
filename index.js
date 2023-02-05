@@ -62,6 +62,7 @@ map.on("mousedown", () => {
 });
 map.on("lasso.finished", (event) => {
   setSelectedLayers(event.layers);
+  console.log("lasso finished event", event);
 });
 map.on("lasso.enabled", () => {
   lassoEnabled.innerHTML = "Enabled";

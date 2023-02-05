@@ -1,0 +1,9 @@
+{
+  "name": "lasso-select-demo",
+  "version": "1.0.0",
+  "description": "A lasso select demo with leaflet-lasso",
+  "main": "index.js",
+  "author": "@micahstubbs <git@micah.fyi>",
+  "license": "Apache-2.0",
+  "private": false
+}
