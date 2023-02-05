@@ -40,4 +40,4 @@ const newHtml = html.replace(
 // write the new html to index.html
 fs.writeFileSync("index.html", newHtml);
 
-console.log(`Wrote ${remoteDeps.length} remote dependencies to index.html`);
+console.log(`Wrote ${remoteDeps.length} remote JS dependencies to index.html`);
